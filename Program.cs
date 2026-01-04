@@ -1,3 +1,4 @@
+using asp_tuto_01.Classes;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,9 +19,22 @@ app.Run(async (HttpContext context) =>
         await context.Response.WriteAsync($"{key} : {context.Request.Headers[key]} \n");
     }
 
-    if(context.Request.Path == "/users" && context.Request.Method == "GET")
+    if (context.Request.Path == "/users" && context.Request.Method == "GET")
     {
-        await context.Response.WriteAsync("usersz");
+        var userRepo = new UserRepository();
+
+        userRepo.SetUser(new User("jojo", "Jojo@123", 32));
+
+        foreach (var user in userRepo.GetAllUsers())
+        {
+            await context.Response.WriteAsync($" user name - {user?.Name} \n");
+        }
+        return;
+    }
+
+    if(context.Request.Path.StartsWithSegments("/employees") && context.Request.Method.Equals("GET") ){
+        await context.Response.WriteAsync("Emplyoe list");
+        return;
     }
 
 });
