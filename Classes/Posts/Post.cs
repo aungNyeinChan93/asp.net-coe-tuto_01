@@ -8,6 +8,11 @@
 
         public string Description { get; set; }
 
+        public Post()
+        {
+
+        }
+
         public Post(int id, string name , string desc)
         {
             this.Id = id;
@@ -23,9 +28,18 @@
             new Post(1,"Post One","Post one desc"),
             new Post(2,"Post Two","Post two desc"),
             new Post(3,"Post Three","Post three desc"),
+            new Post(4,"Post Three","Post three desc"),
         };
 
         public static List<Post> GetAllPosts() => PostRepository._posts;
+
+        public static void SetPost(Post post) =>_posts.Add(post);
+
+        public static void Test()
+        {
+            Console.WriteLine("test.. ");
+        }
+
 
 
     }
