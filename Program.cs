@@ -165,6 +165,13 @@ app.Run(async (HttpContext context) =>
     // DELETE -> /products
     if(context.Request.Method == "DELETE" && context.Request.Path == "/products")
     {
+        // add authentication
+        if (!context.Request.Headers.ContainsKey("Authorization") || context.Request.Headers["Authorization"] != "admin")
+        {
+            await context.Response.WriteAsync("You are not authorize");
+            return;
+        }
+
         if (context.Request.Query.ContainsKey("id"))
         {
             var id = context.Request.Query["id"];
@@ -181,6 +188,18 @@ app.Run(async (HttpContext context) =>
             }
         }
         await context.Response.WriteAsync("Product id not found!");
+        return;
+    }
+
+    if(context.Request.Path == "/tests/header")
+    {
+        if (context.Request.Headers.ContainsKey("Authorization"))
+        {
+            var authorization = context.Request.Headers["Authorization"];
+            
+            string token = authorization.ToString().Split(" ").Last();
+            await context.Response.WriteAsync($" Authorization Token {token}");
+        }
         return;
     }
 
