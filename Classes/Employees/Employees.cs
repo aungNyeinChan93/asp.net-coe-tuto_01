@@ -1,9 +1,6 @@
 ﻿namespace asp_tuto_01.Classes.Employees
 {
-    public class Employees
-    {
-    }
-
+   
     public class Employe
     {
         public int Id { get; set; }

@@ -1,6 +1,7 @@
 using asp_tuto_01.Classes;
 using asp_tuto_01.Classes.Employees;
 using asp_tuto_01.Classes.Posts;
+using asp_tuto_01.Classes.Products;
 using System.Text.Json;
 
 
@@ -97,6 +98,61 @@ app.Run(async (HttpContext context) =>
         EmployeRepository.AddEmployee(employe!);
         return;
     }
+
+
+    // GET -> /products
+    if( context.Request.Method == "GET" && context.Request.Path.StartsWithSegments("/products"))
+    {
+        var products = ProductRepository.GetProducts();
+        foreach (var product in products)
+        {
+            await context.Response.WriteAsync($"Product ID : {product?.Id} \n");
+            await context.Response.WriteAsync($"Product Name : {product?.Name} \n");
+            await context.Response.WriteAsync($"Product Price : {product?.Price} \n");
+            await context.Response.WriteAsync($"");
+        }
+
+        return;
+    }
+
+
+
+    // POST -> /products
+    if (context.Request.Method == "POST" && context.Request.Path.StartsWithSegments("/products"))
+    {
+        using var reader =new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+
+        Product? product = JsonSerializer.Deserialize<Product>(body);
+        ProductRepository.AddProduct(product!);
+
+        return;
+    }
+
+    // PUT -> /products
+    if (context.Request.Method == "PUT" && context.Request.Path.StartsWithSegments("/products"))
+    {
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+
+        Product? product = JsonSerializer.Deserialize<Product>(body);
+        bool isUpdateSuccess = ProductRepository.UpdateProduct(product!);
+        if (isUpdateSuccess)
+        {
+            await context.Response.WriteAsync($"Product Id {product?.Id} was successfully updated");
+        }
+        return;
+    }
+
+    //// PATCH -> /products
+    //if(context.Request.Method == "PATCH" && context.Request.Path == "/products")
+    //{
+    //    using var reader = new StreamReader(context.Request.Body);
+    //    var body = await reader.ReadToEndAsync();
+
+
+    //}
+
 
 });
 
