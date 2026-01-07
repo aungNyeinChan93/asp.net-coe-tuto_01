@@ -48,5 +48,19 @@
             }
             return false;
         }
+
+        public static bool DeleteProduct(int? id)
+        {
+            if(id is not null)
+            {
+                var product = _products.FirstOrDefault(p => p.Id == id);
+                if (product is not null) 
+                {
+                    _products.Remove(product);
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

@@ -115,8 +115,6 @@ app.Run(async (HttpContext context) =>
         return;
     }
 
-
-
     // POST -> /products
     if (context.Request.Method == "POST" && context.Request.Path.StartsWithSegments("/products"))
     {
@@ -137,10 +135,13 @@ app.Run(async (HttpContext context) =>
 
         Product? product = JsonSerializer.Deserialize<Product>(body);
         bool isUpdateSuccess = ProductRepository.UpdateProduct(product!);
-        if (isUpdateSuccess)
+        if (!isUpdateSuccess)
         {
-            await context.Response.WriteAsync($"Product Id {product?.Id} was successfully updated");
+            await context.Response.WriteAsync($"Product Not Found!");
+            return;
         }
+        await context.Response.WriteAsync($"Product Id {product?.Id} was successfully updated");
+
         return;
     }
 
@@ -149,9 +150,39 @@ app.Run(async (HttpContext context) =>
     //{
     //    using var reader = new StreamReader(context.Request.Body);
     //    var body = await reader.ReadToEndAsync();
-
-
     //}
+
+    if(context.Request.Path == "/tests/queryString")
+    {
+        //await context.Response.WriteAsync(context.Request.QueryString.ToString());
+        foreach(var key in context.Request.Query.Keys)
+        {
+            await context.Response.WriteAsync($"{key} : {context.Request.Query[key]} \n");
+        }
+        return;
+    }
+
+    // DELETE -> /products
+    if(context.Request.Method == "DELETE" && context.Request.Path == "/products")
+    {
+        if (context.Request.Query.ContainsKey("id"))
+        {
+            var id = context.Request.Query["id"];
+            if (int.TryParse(id, out int productId))
+            {
+                var isDeleteSuccess = ProductRepository.DeleteProduct(productId);
+                if(!isDeleteSuccess)
+                {
+                    await context.Response.WriteAsync($"Product not found!");
+                    return ;
+                }
+                await context.Response.WriteAsync($"Product {productId} was successfully deleted!");
+                return;
+            }
+        }
+        await context.Response.WriteAsync("Product id not found!");
+        return;
+    }
 
 
 });
