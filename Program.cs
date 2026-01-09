@@ -206,10 +206,28 @@ app.Run(async (HttpContext context) =>
     {
         var books = BookRepository.GetAllBooks();
 
+        try
+        {
+            if(books is null || books.Count <= 0)
+            {
+                context.Response.StatusCode = 400;
+            }
+        }
+        catch (Exception err)
+        {
+            await context.Response.WriteAsync($"{err?.Message}");
+            return;
+        }
+
+        context.Response.Headers["Content-Type"] = "text/html";
+
+        await context.Response.WriteAsync($"<h1> {context.Request.Path.ToString().ToUpper()} </h1>");
+
         foreach (var book in books)
         {
-            await context.Response.WriteAsync($"Book Id :{book?.Id} , Title :{book?.Title} ,Author :{book?.Author} ,Year :{book?.Year} \n");
+            await context.Response.WriteAsync($"<h2>Book Id :{book?.Id} , Title :{book?.Title} ,Author :{book?.Author} ,Year :{book?.Year} </h2>");
         }
+        context.Response.StatusCode = 200;
         return;
     }
 
@@ -222,6 +240,7 @@ app.Run(async (HttpContext context) =>
         Book? books = JsonSerializer.Deserialize<Book>(body!);
         BookRepository.AddBook(books);
 
+        context.Response.StatusCode = 201;
         await context.Response.WriteAsync($"Book was successfully created!");
         return;
     }
@@ -237,9 +256,11 @@ app.Run(async (HttpContext context) =>
 
         if (!isUpdateSuccess)
         {
+            context.Response.StatusCode = 400;
             await context.Response.WriteAsync($"Book Update fail!");
             return;
         }
+        context.Response.StatusCode = 201;
         await context.Response.WriteAsync($"Book was successfully updated!");
         return;
     }
@@ -253,12 +274,14 @@ app.Run(async (HttpContext context) =>
 
         if(token is null)
         {
+            context.Response.StatusCode = 403;
             await context.Response.WriteAsync($"You have not permission!");
             return;
         }
 
         if(!context.Request.Query.ContainsKey("id"))
         {
+            context.Response.StatusCode = 401;
             await context.Response.WriteAsync($"Query id key is needed!");
             return;
         }
@@ -270,16 +293,39 @@ app.Run(async (HttpContext context) =>
 
             if(!isDeleteSuccess)
             {
+                context.Response.StatusCode = 400;
                 await context.Response.WriteAsync($"Book delete fail!");
                 return;
             }
-            await context.Response.WriteAsync($"Successfully delete!");
             //await context.Response.WriteAsJsonAsync(new { name = context.Request.Query["name"][0] });
-            return ;
+            //await context.Response.WriteAsJsonAsync(new { Query = context.Request.Query["id"][0] });
+            context.Response.StatusCode = 202;
+            await context.Response.WriteAsync($"Successfully delete!");
+            //await context.Response.WriteAsync($"");
+            return;
         }
     }
 
+    if(context.Request.Path == "/tests/err")
+    {
+        try
+        {
+            throw new Exception("Test Error");
+        }
+        catch (Exception err)
+        {
+            context.Response.StatusCode = 500;
+            context.Response.Headers.ContentType = "text/html";
+            await context.Response.WriteAsync($"<h3> Error :{err?.Message} </h3>");
+        }
+    }
 
+    if(context.Request.Path == "/redirection")
+    {
+        context.Response.Redirect("/users");
+        context.Response.StatusCode = 302;
+        return;
+    }
 });
 
 //app.MapGet("/", () => "Hello C#!");
