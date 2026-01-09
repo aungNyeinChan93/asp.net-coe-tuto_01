@@ -1,4 +1,5 @@
 using asp_tuto_01.Classes;
+using asp_tuto_01.Classes.Books;
 using asp_tuto_01.Classes.Employees;
 using asp_tuto_01.Classes.Posts;
 using asp_tuto_01.Classes.Products;
@@ -203,6 +204,89 @@ app.Run(async (HttpContext context) =>
         return;
     }
 
+    // GET =>/books
+    if(context.Request.Path == "/books" && context.Request.Method == "GET")
+    {
+        var books = BookRepository.GetAllBooks();
+
+        foreach (var book in books)
+        {
+            await context.Response.WriteAsync($"Book Id :{book?.Id} , Title :{book?.Title} ,Author :{book?.Author} ,Year :{book?.Year} \n");
+        }
+        return;
+    }
+
+    // POST => /books
+    if (context.Request.Path == "/books" && context.Request.Method == "POST")
+    {
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+
+        Book? books = JsonSerializer.Deserialize<Book>(body!);
+        BookRepository.AddBook(books);
+
+        await context.Response.WriteAsync($"Book was successfully created!");
+        return;
+    }
+
+    // PUT => /books
+    if (context.Request.Path == "/books" && context.Request.Method == "PUT")
+    {
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+
+        Book? books = JsonSerializer.Deserialize<Book>(body!);
+        var isUpdateSuccess = BookRepository.UpdateBook(books);
+
+        if (!isUpdateSuccess)
+        {
+            await context.Response.WriteAsync($"Book Update fail!");
+            return;
+        }
+        await context.Response.WriteAsync($"Book was successfully updated!");
+        return;
+    }
+
+
+    // DELETE => /books
+    if (context.Request.Path == "/books" && context.Request.Method == "DELETE")
+    {
+        var token = context.Request.Headers.ContainsKey("Authorization")
+                        ? context.Request.Headers["Authorization"].ToString().Split(" ").Last()
+                        : null;
+
+        if(token is null)
+        {
+            await context.Response.WriteAsync($"You have not permission!");
+            return;
+        }
+
+
+        if(!context.Request.Query.ContainsKey("id"))
+        {
+            await context.Response.WriteAsync($"Query id key is needed!");
+            return;
+        }
+        var id = context.Request.Query["id"];
+
+        if(int.TryParse(id,out int bookId))
+        {
+            bool isDeleteSuccess = BookRepository.DeleteBook(bookId);
+
+            if(!isDeleteSuccess)
+            {
+                await context.Response.WriteAsync($"Book delete fail!");
+                return;
+            }
+
+            await context.Response.WriteAsync($"Successfully delete!");
+            return ;
+        }
+
+
+
+
+    }
 
 });
 
