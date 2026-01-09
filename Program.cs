@@ -41,7 +41,6 @@ app.Run(async (HttpContext context) =>
         return;
     }
 
-
     // -> /posts
     if(context.Request.Path.StartsWithSegments("/posts") && context.Request.Method.Equals("GET") ){
         await context.Response.WriteAsync("Posts list");
@@ -89,7 +88,6 @@ app.Run(async (HttpContext context) =>
         return;
     }
 
-
     // POST ->  /employees
     if (context.Request.Method == "POST" && context.Request.Path == "/employees")
     {
@@ -99,7 +97,6 @@ app.Run(async (HttpContext context) =>
         EmployeRepository.AddEmployee(employe!);
         return;
     }
-
 
     // GET -> /products
     if( context.Request.Method == "GET" && context.Request.Path.StartsWithSegments("/products"))
@@ -247,7 +244,6 @@ app.Run(async (HttpContext context) =>
         return;
     }
 
-
     // DELETE => /books
     if (context.Request.Path == "/books" && context.Request.Method == "DELETE")
     {
@@ -261,14 +257,13 @@ app.Run(async (HttpContext context) =>
             return;
         }
 
-
         if(!context.Request.Query.ContainsKey("id"))
         {
             await context.Response.WriteAsync($"Query id key is needed!");
             return;
         }
-        var id = context.Request.Query["id"];
 
+        string? id = context.Request.Query["id"][0];
         if(int.TryParse(id,out int bookId))
         {
             bool isDeleteSuccess = BookRepository.DeleteBook(bookId);
@@ -278,15 +273,12 @@ app.Run(async (HttpContext context) =>
                 await context.Response.WriteAsync($"Book delete fail!");
                 return;
             }
-
             await context.Response.WriteAsync($"Successfully delete!");
+            //await context.Response.WriteAsJsonAsync(new { name = context.Request.Query["name"][0] });
             return ;
         }
-
-
-
-
     }
+
 
 });
 
