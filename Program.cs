@@ -11,6 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
+app.Use(async(HttpContext context,RequestDelegate next) =>
+{
+    var path = context.Request.Path;
+    await context.Response.WriteAsync($"Path Name from first middleware before :{path} \n");
+    await next(context);
+    await context.Response.WriteAsync($"Path Name from first middleware after :{path} \n");
+});
+
 
 app.Run(async (HttpContext context) =>
 {
