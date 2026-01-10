@@ -60,5 +60,12 @@ namespace asp_tuto_01.Classes.Books
 
             return true;
         }
+
+        public static Book? GetBook(int? id)
+        {
+            var book = _books.FirstOrDefault(b => b.Id == id);
+            if(book is null) return null;
+            return book;
+        }
     }
 }
