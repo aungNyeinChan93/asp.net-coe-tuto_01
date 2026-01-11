@@ -12,6 +12,72 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 
+// log Middleware
+app.Use(async(HttpContext context,RequestDelegate next) =>
+{
+    var path = context.Request.Path;
+    await context.Response.WriteAsync($"Path Name from first middleware before :{path} \n");
+    await next(context);
+    await context.Response.WriteAsync($"Path Name from first middleware after :{path} \n");
+});
+
+
+// Auth Routes
+app.Map("/login", (appBuilder) =>
+{
+    appBuilder.Use(async (HttpContext context, RequestDelegate next) =>
+    {
+        await context.Response.WriteAsync($"Login Page \n");
+        await next(context);
+    });
+
+    appBuilder.Use(async (HttpContext context, RequestDelegate next) =>
+    {
+        await context.Response.WriteAsync($"Next login pipeline \n");
+        await next(context);
+    });
+});
+
+app.Map("/signUp", (appBuilder) =>
+{
+    appBuilder.Use(async (HttpContext context, RequestDelegate next) =>
+    {
+        await context.Response.WriteAsync($" Sign Up Page \n");
+        await next(context);
+    });
+
+    //appBuilder.Run(async (context) =>
+    //{
+    //    context.Response.StatusCode = 200;
+    //    await context.Response.WriteAsync($"Sign Up Page End \n");
+    //    return;
+    //});
+});
+
+// auth middleware
+app.Use(async (HttpContext context, RequestDelegate next) =>
+{
+    try
+    {
+        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+        var token = authHeader?.Split(" ").Last();
+        await context.Response.WriteAsync($"Token middleware {token ?? "No Token"} \n");
+        if (token is not null || !string.IsNullOrEmpty(token))
+        {
+            await next(context);
+        }
+        await context.Response.WriteAsync("No token provided, stopping pipeline.\n");
+        return;
+    }
+    catch (Exception err)
+    {
+        await context.Response.WriteAsync($" {err?.Message} ");
+    }
+});
+
+
+
+
 app.Run(async (HttpContext context) =>
 {
 if (context.Request.Method == "GET" && context.Request.Path == "/")
