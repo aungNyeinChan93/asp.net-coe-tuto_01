@@ -20,6 +20,27 @@ app.Use(async(HttpContext context,RequestDelegate next) =>
 });
 
 
+// auth middleware
+app.Use(async (HttpContext context, RequestDelegate next) =>
+{
+    try
+    {
+        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+        var token = authHeader?.Split(" ").Last();
+        await context.Response.WriteAsync($"Token middleware {token ?? "No Token"} \n");
+        if (token is not null || !string.IsNullOrEmpty(token))
+        {
+            await next(context);
+        }
+        await context.Response.WriteAsync("No token provided, stopping pipeline.\n");
+        return;
+    }
+    catch (Exception err)
+    {
+        await context.Response.WriteAsync($" {err?.Message} ");
+    }
+});
+
 app.Run(async (HttpContext context) =>
 {
 if (context.Request.Method == "GET" && context.Request.Path == "/")
